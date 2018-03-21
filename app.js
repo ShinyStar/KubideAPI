@@ -1,4 +1,5 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
 
 const db = require('./src/db.js');
@@ -14,9 +15,15 @@ const db = require('./src/db.js');
 
 app.get('/', (req, res) => res.send('Hiii!'));
 
+app.use(bodyParser.json());
+
 //Create a note
-app.post('/note/:userid', function (req, res) {
-    //db.createNote
+app.post('/note/:user', function (req, res) {
+    db.createNote(req.params.user, req.body.text).then(result => {
+	    res.json(result);
+    }).catch(err => {
+        res.json(err);
+    });
 });
 
 //Get all notes
@@ -38,8 +45,12 @@ app.get('/notes/:id', function (req, res) {
 });
 
 //Fav a note
-app.post('/favs/:userid/:noteid', function (req, res) {
-	//db.addFav
+app.post('/fav/:user', function (req, res) {
+	db.addFav(req.params.user, req.body.note).then(result => {
+	    res.json(result);
+    }).catch(err => {
+        res.json(err);
+    });
 });
 
 //Get favs
