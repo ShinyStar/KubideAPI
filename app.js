@@ -3,8 +3,9 @@ const app = express();
 
 const db = require('./src/db.js');
 
-// db.createNote("test", "prueba").catch(err=>console.log(err));
+// db.createNote("test", "prueba").then(x=>console.log(x)).catch(err=>console.log(err));
 // db.getNotes().then(x=>console.log(x)).catch(err=>console.log(err));
+// db.getNote(1).then(x=>console.log(x)).catch(err=>console.log(err));
 
 //REST API
 
@@ -26,7 +27,11 @@ app.get('/notes', function (req, res) {
 
 //Get a single note
 app.get('/notes/:id', function (req, res) {
-	//db.getNote
+	db.getNote(req.params.id).then(result => {
+	    res.json(result);
+    }).catch(err => {
+        res.json(err);
+    });
 });
 
 //Fav a note

@@ -31,9 +31,23 @@ Database.createNote = function(author, text){
             if (err) {
                 reject(err);
             } else {
-                resolve();
+                resolve(results.id);
             }
         }));
+    });
+}
+
+Database.getNote = function(id){
+    return new Promise((resolve, reject) => {
+        let querySpec = { query: `SELECT * FROM Notes n WHERE n.id="${id}"` };
+        client.queryDocuments(dbLink+"/colls/Notes", querySpec).toArray((err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                let finalResult = results.map(x => ({id: x.id, author: x.author, text: x.text, date: x.date}));
+                resolve(finalResult[0]);
+            }
+        });
     });
 }
 
