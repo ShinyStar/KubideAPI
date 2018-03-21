@@ -1,4 +1,4 @@
-describe("Creating notes and getting all", function() {
+describe("Creating notes and getting all", function () {
     const db = require('./../src/db.js');
     let notes1 = [], notes2 = [];
 
@@ -11,23 +11,23 @@ describe("Creating notes and getting all", function() {
             db.createNote(author2, text2).then(id2 => {
                 db.getNotes().then(result => {
                     notes1 = result.filter(x => {
-                        return (x.id==id && x.author == author && x.text == text);
+                        return (x.id == id && x.author == author && x.text == text);
                     });
                     notes2 = result.filter(x => {
-                        return (x.id==id2 && x.author == author2 && x.text == text2);
+                        return (x.id == id2 && x.author == author2 && x.text == text2);
                     });
                     done();
                 }).catch(done);
             }).catch(done);
         }).catch(done);
     });
-  
-    it("", function() {
-        expect(notes1.length+notes2.length).toBe(2);
-    });
-  });
 
-  describe("Creating and getting a note", function() {
+    it("", function () {
+        expect(notes1.length + notes2.length).toBe(2);
+    });
+});
+
+describe("Creating and getting a note", function () {
     const db = require('./../src/db.js');
     let flag = false;
 
@@ -41,8 +41,58 @@ describe("Creating notes and getting all", function() {
             }).catch(done);
         }).catch(done);
     });
-  
-    it("", function() {
+
+    it("", function () {
         expect(flag).toBe(true);
     });
-  });
+});
+
+describe("Adding and getting favorites", function () {
+    const db = require('./../src/db.js');
+    let notes = [];
+
+    beforeEach(function (done) {
+        let user = "jasmine",
+            author = "jasmineAuthor",
+            text = "jasmine test";
+        db.createNote(author, text).then(id => {
+            db.addFav(user, id).then(note => {
+                db.getFavs(user).then(result => {
+                    notes = result.filter(x => {
+                        return (x.id == id && x.author == author && x.text == text);
+                    });
+                    done();
+                }).catch(done)
+            }).catch(done);
+        }).catch(done);
+    });
+
+    it("", function () {
+        expect(notes.length).toBe(1);
+    });
+});
+
+describe("Adding favorites to new user", function () {
+    const db = require('./../src/db.js');
+    let notes = [];
+
+    beforeEach(function (done) {
+        let author = "jasmine",
+            text = "jasmine test";
+        db.createNote(author, text).then(id => {
+            let user = "NewUser"+id;
+            db.addFav(user, id).then(note => {
+                db.getFavs(user).then(result => {
+                    notes = result.filter(x => {
+                        return (x.id == id && x.author == author && x.text == text);
+                    });
+                    done();
+                }).catch(done)
+            }).catch(done);
+        }).catch(done);
+    });
+
+    it("", function () {
+        expect(notes.length).toBe(1);
+    });
+});

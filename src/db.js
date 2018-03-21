@@ -51,4 +51,60 @@ Database.getNote = function(id){
     });
 }
 
+Database.addFav = function(user, noteId){
+    return new Promise((resolve, reject) => {
+        let querySpec = { query: `SELECT * FROM Users u WHERE u.name="${user}"` };
+        client.queryDocuments(dbLink+"/colls/Users", querySpec).toArray((err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                if(results.length==0){
+                    Database.createUser(user, noteId).then(x => resolve([noteId]));
+                }else{
+                    results = results[0];
+                    if(!(results.favs.includes(noteId))){
+                        results.favs.push(noteId)
+                        let doc = results;
+                        client.replaceDocument(dbLink+"/colls/Users/docs/"+results.id, doc, (err, updated) => {
+                            if (err) {
+                                reject(err);
+                            } else {
+                                resolve(updated.favs);
+                            }
+                        });
+                    }
+                }
+            }
+        });
+    });
+}
+
+Database.getFavs = function(name){
+    return new Promise((resolve, reject) => {
+        let querySpec = { query: `SELECT * FROM Users u WHERE u.name="${name}"` };
+        client.queryDocuments(dbLink+"/colls/Users", querySpec).toArray((err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                Promise.all(results[0].favs.map(Database.getNote)).then(resolve);
+            }
+        });
+    });
+}
+
+//Auxiliary
+
+Database.createUser = function(name, fav){
+    return new Promise((resolve, reject) => {
+        let doc = {name: name, favs: [fav] || []};
+        client.createDocument(dbLink+"/colls/Users", doc, ((err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results.id);
+            }
+        }));
+    });
+}
+
 module.exports = Database;
