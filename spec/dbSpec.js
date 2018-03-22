@@ -96,3 +96,90 @@ describe("Adding favorites to new user", function () {
         expect(notes.length).toBe(1);
     });
 });
+
+describe("Rest API", function () {
+    const request = require('request');
+    let opt = {
+        uri: "http://localhost:8080/note/jasmine",
+        method: "POST",
+        json: {
+            "text": "PostTestNote"
+        }
+    }
+    let noteId;
+    let flag = false;
+
+    let makeRequest = function(done){
+        //Create node
+        request(opt, (err, res, body) => {
+            if (!err && res.statusCode == 200) {
+                //Get that note
+                noteId = body;
+                opt.uri = "http://localhost:8080/notes/" + noteId;
+                opt.method = "GET";
+                request(opt, (err, res, body) => {
+                    if (!err && res.statusCode == 200) {
+                        //Fav note
+                        opt.uri = "http://localhost:8080/fav/jasmine";
+                        opt.method = "POST";
+                        opt.json = { "note": noteId };
+                        request(opt, (err, res, body) => {
+                            if (!err && res.statusCode == 200) {
+                                //Get user favs
+                                opt.uri = "http://localhost:8080/favs/jasmine";
+                                opt.method = "GET";
+                                request(opt, (err, res, body) => {
+                                    if (!err && res.statusCode == 200) {
+                                        flag = body.filter(x => {
+                                            return (x.id == noteId);
+                                        }).length == 1;
+                                        if (flag) {
+                                            //Get all notes
+                                            opt.uri = "http://localhost:8080/notes";
+                                            request(opt, (err, res, body) => {
+                                                if (!err && res.statusCode == 200) {
+                                                    flag = body.filter(x => {
+                                                        return (x.id == noteId);
+                                                    }).length == 1;
+                                                    done();
+                                                } else {
+                                                    done();
+                                                }
+                                            });
+                                        } else {
+                                            done();
+                                        }
+                                    } else {
+                                        done();
+                                    }
+                                });
+                            } else {
+                                done();
+                            }
+                        });
+                    } else {
+                        done();
+                    }
+                });
+            } else {
+                console.log(err)
+                if(err.code == 'ECONNREFUSED'){
+                    setTimeout(x => makeRequest(done), 100);
+                }else{
+                    done();
+                }
+            }
+        });
+    }
+
+    beforeEach(function (done) {
+        const { spawn } = require('child_process');
+        const server = spawn('node', ['app.js']);
+        //Waits for the server to initialize
+        setTimeout(x => makeRequest(done), 1000);
+    });
+
+    it("", function () {
+        expect(flag).toBe(true);
+    });
+});
